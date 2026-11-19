@@ -168,6 +168,22 @@ Covered scenarios: verification with correct/wrong token, invalid and missing si
 
 **Testing background work.** The webhook returns `200` before the worker replies, so tests cannot assert right after the request. `FakeWhatsAppClient` releases a semaphore on every send and `WaitForMessagesAsync(n)` waits for it with a timeout. For "nothing should be sent" cases (status events, duplicates), the test sends a follow-up message and relies on the queue's ordering: if the ignored event had produced a reply, it would arrive first. This avoids fixed `Task.Delay` waits and flaky tests.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and on every pull request, on a clean Ubuntu runner:
+
+```mermaid
+flowchart LR
+    Push["push / pull request"] --> Checkout --> Setup["Setup .NET<br/>(version from global.json)"]
+    Setup --> Restore --> Format["dotnet format<br/>--verify-no-changes"]
+    Format --> Build["dotnet build<br/>Release, warnings = errors"]
+    Build --> Test["dotnet test<br/>unit + integration"]
+```
+
+- The SDK version comes from `global.json`, so CI and local builds use the same compiler.
+- Formatting follows `.editorconfig`; `TreatWarningsAsErrors` turns any compiler warning into a failure.
+- The workflow needs **no secrets**: tests use fake settings and a fake WhatsApp client. The workflow token is read-only (`permissions: contents: read`).
+
 ## Known limitations and production path
 
 | Limitation (acceptable for the POC) | Production alternative |
