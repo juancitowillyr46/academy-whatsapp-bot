@@ -5,7 +5,10 @@ using AcademyWhatsAppBot.Api.Replies;
 using AcademyWhatsAppBot.Api.Webhook;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
+
+using OllamaSharp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +33,29 @@ builder.Services
 builder.Services.AddSingleton<IStudentRepository>(services =>
     new JsonStudentRepository(ResolveDataPath(services.GetRequiredService<IOptions<DataOptions>>().Value)));
 
-builder.Services.AddSingleton<IIntentClassifier, KeywordIntentClassifier>();
+// Intent classification: keyword rules always; a local language model (Ollama) for everything else when enabled.
+builder.Services
+    .AddOptions<AiOptions>()
+    .Bind(builder.Configuration.GetSection(AiOptions.SectionName))
+    .ValidateDataAnnotations()
+    .Validate(options => options.Provider is AiProviders.None or AiProviders.Ollama, "Ai:Provider must be 'None' or 'Ollama'.")
+    .ValidateOnStart();
+
+var ai = builder.Configuration.GetSection(AiOptions.SectionName).Get<AiOptions>() ?? new AiOptions();
+builder.Services.AddSingleton<KeywordIntentClassifier>();
+
+if (ai.Provider == AiProviders.Ollama)
+{
+    // Any IChatClient works here (Ollama, OpenAI-compatible, Claude...): swapping providers is a registration change.
+    builder.Services.AddSingleton<IChatClient>(_ => new OllamaApiClient(new Uri(ai.Endpoint), ai.Model));
+    builder.Services.AddSingleton<LlmIntentClassifier>();
+    builder.Services.AddSingleton<IIntentClassifier, HybridIntentClassifier>();
+}
+else
+{
+    builder.Services.AddSingleton<IIntentClassifier>(services => services.GetRequiredService<KeywordIntentClassifier>());
+}
+
 builder.Services.AddSingleton<ReplyService>();
 
 // The client is used by a long-lived worker, so recycle pooled connections to pick up DNS changes.

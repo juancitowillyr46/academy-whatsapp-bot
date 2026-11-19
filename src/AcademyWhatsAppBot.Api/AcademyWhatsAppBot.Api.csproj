@@ -4,4 +4,9 @@
     <UserSecretsId>academy-whatsapp-bot-api</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" Version="11.0.0" />
+    <PackageReference Include="OllamaSharp" Version="5.5.2" />
+  </ItemGroup>
+
 </Project>

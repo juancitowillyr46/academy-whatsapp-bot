@@ -97,11 +97,41 @@ Meta may deliver the same message more than once. Each message has a unique id (
 
 ### Reply logic (`IIntentClassifier` + `ReplyService`)
 
-Replying is split in two steps: an `IIntentClassifier` decides **what** the parent wants (an `Intent`), and `ReplyService` builds **the text** from that intent with code and data. A classifier can therefore choose which reply is sent but never write its content, so amounts can't be invented and a parent can only see their own data (the phone always comes from WhatsApp's sender field). The current classifier, `KeywordIntentClassifier`, is rule-based:
+Replying is split in two steps: an `IIntentClassifier` decides **what** the parent wants (an `Intent`), and `ReplyService` builds **the text** from that intent with code and data. A classifier can therefore choose which reply is sent but never write its content, so amounts can't be invented and a parent can only see their own data (the phone always comes from WhatsApp's sender field).
 
-1. The text is normalized: lowercase, accents removed, extra spaces collapsed (`"¿Cuánto DEBO?"` → `"¿cuanto debo?"`).
-2. If it contains a balance keyword (`saldo`, `cuanto debo`, `deuda`), the guardian's **active** students are looked up by phone; otherwise, and for non-text messages (audio, images), the help text is returned.
-3. No students → "not registered" message. Otherwise a single message lists every student (siblings included): amount, period, due date and payment link, or "al día" when the balance is 0. The "send your receipt" footer appears only if something is owed.
+```mermaid
+flowchart LR
+    Text["Message text"] --> Rules["KeywordIntentClassifier<br/>saldo · cuanto debo · deuda"]
+    Rules -- "match" --> Intent
+    Rules -- "no match" --> Llm["LlmIntentClassifier<br/>local model via IChatClient<br/>JSON schema: one intent"]
+    Llm -- "ok" --> Intent["Intent"]
+    Llm -- "error / timeout" --> Fallback["rule result (help)"]
+    Intent --> Reply["ReplyService<br/>text from code + data"]
+    Fallback --> Reply
+```
+
+**Keyword rules** (`KeywordIntentClassifier`) run first: free, instant and predictable. The text is normalized (lowercase, accents removed, extra spaces collapsed: `"¿Cuánto DEBO?"` → `"¿cuanto debo?"`) and checked for `saldo`, `cuanto debo` or `deuda`.
+
+**A local language model** (`LlmIntentClassifier`) only sees messages the rules don't understand, wired through `HybridIntentClassifier`:
+
+- It is called through `Microsoft.Extensions.AI`'s `IChatClient`, implemented by OllamaSharp for a local [Ollama](https://ollama.com) server. Swapping to another provider (OpenAI-compatible APIs, Claude...) is a registration change in `Program.cs`.
+- The request sets a **JSON schema response format** whose only field is an enum of intents, so the model can only pick a category; anything unexpected maps to `Unknown`. Temperature is 0.
+- The prompt is in Spanish with a few examples (deliberately different from the evaluation cases).
+- If the model fails or exceeds `Ai:TimeoutSeconds`, the rule result is used, so a parent always gets an answer.
+- `Ai:Provider` is `None` by default (rules only, as in CI and tests) and `Ollama` in `appsettings.Development.json`.
+
+**Why the model never writes replies.** Before settling on this design, local models were measured on a CPU-only laptop (Ryzen 7, 16 GB RAM) with the same Spanish prompts:
+
+| Model | Approach | Result | Avg. latency |
+|---|---|---|---|
+| `llama3.1:8b` | Agent with tools writes the reply | Picked the right tool 5/6, but refused to share data it had and **invented an amount and due date** | 26 s |
+| `qwen2.5-coder:3b` | Agent with tools writes the reply | 0/6: wrote tool calls as plain text | 7 s |
+| `qwen2.5-coder:3b` | Classifier only (JSON schema) | 11/14 | 3.5 s |
+| **`qwen2.5:3b`** | **Classifier only (JSON schema)** | **12/14** | **3.7 s** |
+
+Small models hallucinate when they write free text about money, and are reliable enough when they only choose among fixed options. An `other_family` intent was also dropped after testing: the model can't know whether "Tomás" is the sender's child, and it doesn't need to, because a balance reply only ever contains the sender's own students.
+
+Once the intent is known: for `Balance`, the guardian's **active** students are looked up by phone. No students → "not registered" message. Otherwise a single message lists every student (siblings included): amount, period, due date and payment link, or "al día" when the balance is 0. The "send your receipt" footer appears only if something is owed. Other intents and non-text messages (audio, images) currently get the help text.
 
 Amounts and dates use the `es-CO` culture: `$120.000` and `5 de diciembre`. All Spanish texts live in `Replies/Messages.cs`, so code, logs and identifiers stay in English.
 
