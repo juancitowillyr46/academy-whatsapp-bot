@@ -47,6 +47,7 @@ public static class WebhookEndpoints
     private static async Task<IResult> ReceiveWebhookAsync(
         HttpRequest request,
         IOptions<WhatsAppOptions> options,
+        IWhatsAppClient whatsAppClient,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
@@ -89,6 +90,9 @@ public static class WebhookEndpoints
                 message.Id,
                 PhoneNormalizer.Mask(message.From),
                 message.Text?.Body);
+
+            // Temporary end-to-end check (step 5). Replaced by the background queue and balance reply later.
+            await whatsAppClient.SendTextMessageAsync(message.From, "hola", cancellationToken);
         }
 
         return Results.Ok();

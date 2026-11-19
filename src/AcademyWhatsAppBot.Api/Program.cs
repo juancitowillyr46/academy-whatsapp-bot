@@ -12,6 +12,9 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddHttpClient<IWhatsAppClient, WhatsAppClient>(client =>
+    client.BaseAddress = new Uri("https://graph.facebook.com/"));
+
 var app = builder.Build();
 
 // Runs only after options validation passed; never log secret values.
