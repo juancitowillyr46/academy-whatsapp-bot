@@ -156,10 +156,23 @@ evals/                            labeled cases and results
 
 ## Roadmap
 
-- [x] **Phase 1 – Rule-based bot:** balance check by keywords, runs locally on demand.
-- [x] **Phase 2 – Local AI (current):** free-form messages classified by a local LLM, human hand-off, evals.
-- [ ] **Phase 3 – Conversational agent:** short per-phone memory, a held-out eval set, optional hosted model behind the same `IChatClient`.
-- [ ] **Phase 4 – Proactive & real data:** payment reminders with approved templates, Google Sheets, receipt handling.
+- [x] **Phase 1 – Rule-based bot**
+  - [x] Signed webhook (HMAC-SHA256), background queue and deduplication
+  - [x] Balance statement by keywords: siblings in one message, up to date, unknown phone
+  - [x] Unit and integration tests, GitHub Actions CI, demo GIF
+- [x] **Phase 2 – Local AI** (current)
+  - [x] Free-form messages classified by a local LLM (Ollama `qwen2.5:3b`, JSON schema output)
+  - [x] Replies for hand-off to a person, greetings and off-topic messages
+  - [x] Provider-agnostic `IChatClient` with fallback to rules when the model fails
+  - [x] Evals: 40 labeled messages, 77.5% → 90% after an eval-driven fix
+- [ ] **Phase 3 – Conversational agent**
+  - [ ] Short per-phone conversation memory
+  - [ ] Held-out eval set with new phrasings
+  - [ ] Optional hosted model behind the same `IChatClient`
+- [ ] **Phase 4 – Proactive & real data**
+  - [ ] Payment reminders with approved templates
+  - [ ] Google Sheets as the data source
+  - [ ] Payment receipt (image) handling
 
 ## License
 
