@@ -16,17 +16,48 @@ WhatsApp bot (proof of concept) for a sports academy: parents ask about their ba
 
 Real WhatsApp conversation with the bot (fake student data; recorded in phase 1, before greetings got their own reply). A parent with two children gets one message: the pending balance with its payment link, and "al día" for the child who is up to date.
 
-## How it works
+## Architecture
 
 ```mermaid
 flowchart LR
-    Phone["📱 Parent"] --> Meta["WhatsApp Cloud API"]
-    Meta -- "signed webhook" --> Ngrok["ngrok"] --> Api["ASP.NET Core API<br/>validate → enqueue → 200"]
-    Api --> Worker["Background worker<br/>dedupe"]
-    Worker --> Intent["Intent<br/>rules → local LLM"]
-    Intent --> Reply["Reply built by code"]
-    Reply --> Data[("students.json")]
-    Reply -- "send" --> Meta
+    subgraph Internet
+        Parent["📱 Parent<br/>WhatsApp app"]
+        Meta["Meta<br/>WhatsApp Cloud API"]
+        Tunnel["ngrok<br/>static HTTPS domain"]
+    end
+
+    subgraph Laptop["Developer laptop · runs on demand for demos"]
+        subgraph Api["ASP.NET Core 10 Minimal API"]
+            Webhook["Webhook endpoints<br/>GET verify · POST receive<br/>HMAC-SHA256 signature check"]
+            Queue[["MessageQueue<br/>in-memory Channel"]]
+            Worker["MessageWorker<br/>BackgroundService<br/>dedupe by message id"]
+            subgraph Brain["Intent → reply"]
+                Rules["Keyword rules<br/>balance · greetings"]
+                Llm["LlmIntentClassifier<br/>IChatClient · JSON schema"]
+                Reply["ReplyService<br/>fixed Spanish texts · es-CO formats"]
+            end
+            Repo["JsonStudentRepository"]
+            Client["WhatsAppClient<br/>typed HttpClient"]
+        end
+        Ollama["Ollama<br/>qwen2.5:3b · CPU"]
+        Json[("students.json<br/>fake data")]
+        Secrets[("User Secrets<br/>token · app secret")]
+    end
+
+    Parent -- "1 · message" --> Meta
+    Meta -- "2 · POST /webhook (signed)" --> Tunnel --> Webhook
+    Webhook -- "3 · enqueue, 200 OK" --> Queue --> Worker
+    Worker -- "4 · classify" --> Rules
+    Rules -- "no match" --> Llm
+    Llm <-->|"JSON intent only"| Ollama
+    Rules -- "intent" --> Reply
+    Llm -- "intent" --> Reply
+    Reply -- "sender's own students" --> Repo --> Json
+    Worker -- "5 · send reply" --> Client
+    Client -- "POST /messages" --> Meta
+    Meta -- "6 · reply" --> Parent
+    Secrets -.-> Webhook
+    Secrets -.-> Client
 ```
 
 1. Meta posts each incoming message to `POST /webhook`.
