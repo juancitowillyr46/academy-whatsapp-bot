@@ -110,7 +110,7 @@ flowchart LR
     Fallback --> Reply
 ```
 
-**Keyword rules** (`KeywordIntentClassifier`) run first: free, instant and predictable. The text is normalized (lowercase, accents removed, extra spaces collapsed: `"¿Cuánto DEBO?"` → `"¿cuanto debo?"`) and checked for `saldo`, `cuanto debo` or `deuda`.
+**Keyword rules** (`KeywordIntentClassifier`) run first: free, instant and predictable. The text is normalized (lowercase, accents removed, extra spaces collapsed: `"¿Cuánto DEBO?"` → `"¿cuanto debo?"`) and checked for `saldo`, `cuanto debo` or `deuda` anywhere in the text. A message that is *only* a greeting or thanks ("hola", "buenas tardes", "muchas gracias", after dropping punctuation/emoji and collapsing "holaaa") is a `Greeting`; this rule was added after the evals showed the small model misreading short greetings.
 
 **A local language model** (`LlmIntentClassifier`) only sees messages the rules don't understand, wired through `HybridIntentClassifier`:
 
@@ -206,6 +206,10 @@ flowchart LR
 Covered scenarios: verification with correct/wrong token, invalid and missing signature (`401`, nothing sent), balance statement, siblings, unknown phone, help, status events ignored and duplicate messages answered once. Payloads come from `Fixtures/` and mirror Meta's real format.
 
 **Testing background work.** The webhook returns `200` before the worker replies, so tests cannot assert right after the request. `FakeWhatsAppClient` releases a semaphore on every send and `WaitForMessagesAsync(n)` waits for it with a timeout. For "nothing should be sent" cases (status events, duplicates), the test sends a follow-up message and relies on the queue's ordering: if the ignored event had produced a reply, it would arrive first. This avoids fixed `Task.Delay` waits and flaky tests.
+
+### Evals (`tools/AcademyWhatsAppBot.Evals`)
+
+A console app runs the real `HybridIntentClassifier` against a local Ollama model over 40 labeled Spanish messages (`evals/intent-cases.json`) and writes a Markdown report per run to `evals/results/`. It is not part of CI (it needs a model). Results and caveats: [evals/README.md](../evals/README.md); the baseline run (77.5%) drove the greeting rules (90%).
 
 ## Continuous integration
 

@@ -98,7 +98,7 @@ public class ReplyServiceTests
     [Fact]
     public async Task OtherText_ReturnsHelp()
     {
-        var reply = await _service.BuildReplyAsync(TextFrom(MartaPhone, "hola"));
+        var reply = await _service.BuildReplyAsync(TextFrom(MartaPhone, "¿a qué hora es el entrenamiento?"));
 
         Assert.Equal(Messages.Help, reply);
     }

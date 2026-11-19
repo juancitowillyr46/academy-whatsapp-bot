@@ -99,10 +99,20 @@ public sealed class WebhookTests : IDisposable
     public async Task OtherText_RepliesHelp()
     {
         await _client.SendAsync(BotApplicationFactory.SignedWebhookRequest(
-            BotApplicationFactory.TextMessage("wamid.4", MartaPhone, "hola")));
+            BotApplicationFactory.TextMessage("wamid.4", MartaPhone, "¿a qué hora es el entrenamiento?")));
 
         var sent = Assert.Single(await _factory.WhatsApp.WaitForMessagesAsync(1));
         Assert.Equal(Messages.Help, sent.Text);
+    }
+
+    [Fact]
+    public async Task Greeting_RepliesWithIntroduction()
+    {
+        await _client.SendAsync(BotApplicationFactory.SignedWebhookRequest(
+            BotApplicationFactory.TextMessage("wamid.6", MartaPhone, "Buenas tardes")));
+
+        var sent = Assert.Single(await _factory.WhatsApp.WaitForMessagesAsync(1));
+        Assert.Equal(Messages.Greeting, sent.Text);
     }
 
     [Fact]
@@ -128,7 +138,7 @@ public sealed class WebhookTests : IDisposable
         await _client.SendAsync(BotApplicationFactory.SignedWebhookRequest(duplicated));
         await _client.SendAsync(BotApplicationFactory.SignedWebhookRequest(duplicated));
         await _client.SendAsync(BotApplicationFactory.SignedWebhookRequest(
-            BotApplicationFactory.TextMessage("wamid.AFTER", MartaPhone, "hola")));
+            BotApplicationFactory.TextMessage("wamid.AFTER", MartaPhone, "¿a qué hora es el entrenamiento?")));
 
         // Processed in order: [statement, help]. A processed duplicate would make it [statement, statement, help].
         var sent = await _factory.WhatsApp.WaitForMessagesAsync(2);
