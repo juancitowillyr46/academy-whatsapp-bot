@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # Local data with real phone numbers (never commit)
 data/*.local.json
+
+# Raw demo recordings (only the edited docs/demo.gif is committed)
+docs/raw-demo*

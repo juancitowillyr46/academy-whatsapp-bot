@@ -6,24 +6,15 @@
 
 WhatsApp bot (proof of concept) for a sports academy: parents text **"saldo"** and instantly get their children's outstanding balance and a payment link, with no staff involved.
 
-> **The demo runs locally on demand** (ASP.NET Core + ngrok), so the bot is not online all the time. See the conversation below, or follow the steps to run it yourself.
+> **The demo runs locally on demand** (ASP.NET Core + ngrok), so the bot is not online all the time. See the recording below, or follow the steps to run it yourself.
 
 ## Demo
 
-```text
-Parent:  Hola, ¿cuál es mi saldo?
+<p align="center">
+  <img src="docs/demo.gif" alt="WhatsApp chat: the parent writes 'Hola' and gets the help message, then writes 'saldo' and gets each child's balance, due date and payment link" width="360">
+</p>
 
-Bot:     Hola Carlos Ruiz 👋
-         Este es el estado de cuenta:
-
-         • Sofía Ruiz – Noviembre 2026: $150.000 (vence el 5 de diciembre)
-           Paga aquí: https://example.com/pay/A002
-         • Mateo Ruiz – al día ✅
-
-         Si ya pagaste, envía el comprobante por este chat.
-```
-
-Any other message gets a help reply; unknown phone numbers are told to contact the academy.
+Real WhatsApp conversation with the bot (fake student data). A parent with two children gets one message: the pending balance with its payment link, and "al día" for the child who is up to date. Any other message gets a help reply; unknown phone numbers are told to contact the academy.
 
 ## How it works
 
