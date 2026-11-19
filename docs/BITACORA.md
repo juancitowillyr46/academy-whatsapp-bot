@@ -51,6 +51,7 @@ Registro de lo que se ha hecho, las decisiones tomadas y por qué, los problemas
 - Antes del push se revisó todo el historial en busca de secretos y se cambió el autor de los commits al **correo noreply de GitHub** para no exponer el correo personal.
 - El push falló porque la sesión de `gh` no tenía el permiso `workflow` (necesario para subir `.github/workflows`). Se resolvió con `gh auth login -s workflow`.
 - **GIF de la demo:** grabado en el celular y editado con ffmpeg (recorte de barra de estado y teclado, cortes de tiempos muertos; 20 s, ~2 MB). Los nombres del registro propio se cambiaron por ficticios antes de grabar; el video original no se sube.
+- **GIF de la fase 2:** misma edición (tiempos de espera del modelo recortados; 35 s, 8 fps, ~2,4 MB). El README muestra los dos GIF lado a lado (`docs/demo-phase1.gif`, `docs/demo-phase2.gif`) para que se vea la evolución.
 
 ## 4. Fase 2: IA local (19 nov)
 

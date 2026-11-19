@@ -6,15 +6,26 @@
 
 WhatsApp bot (proof of concept) for a sports academy: parents ask about their balance in their own words and instantly get each child's outstanding amount and a payment link, with no staff involved. Free-form messages are understood by a **local language model** (Ollama), while every reply and amount comes from code and data.
 
-> **The demo runs locally on demand** (ASP.NET Core + ngrok + Ollama), so the bot is not online all the time. See the recording below, or follow the steps to run it yourself.
+> **The demo runs locally on demand** (ASP.NET Core + ngrok + Ollama), so the bot is not online all the time. See the recordings below, or follow the steps to run it yourself.
 
 ## Demo
 
-<p align="center">
-  <img src="docs/demo.gif" alt="WhatsApp chat: the parent writes 'Buenas tardes' and gets an introduction, asks 'Cuanto debo?' and gets each child's balance with a payment link, says 'Ya hice la transferencia' and is told a person will review it, and asks for a movie recommendation and is politely redirected" width="360">
-</p>
+Real WhatsApp conversations with the bot (fake student data). One recording per phase, so you can see how it evolved.
 
-Real WhatsApp conversation with the bot (fake student data, waiting time trimmed). One parent, four intents: a greeting, a balance question (one message with the pending balance and payment link, and "al día" for the child who is up to date), a payment notice handed off to a person, and an off-topic request politely redirected.
+<table>
+  <tr>
+    <th>Phase 1 · Rule-based</th>
+    <th>Phase 2 · Local AI</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/demo-phase1.gif" alt="WhatsApp chat: the parent writes 'Hola' and gets the help message, then writes 'saldo' and gets each child's balance, due date and payment link" width="300"></td>
+    <td align="center"><img src="docs/demo-phase2.gif" alt="WhatsApp chat: the parent writes 'Buenas tardes' and gets an introduction, asks 'Cuanto debo?' and gets each child's balance with a payment link, says 'Ya hice la transferencia' and is told a person will review it, and asks for a movie recommendation and is politely redirected" width="300"></td>
+  </tr>
+  <tr>
+    <td valign="top">Keywords only. "saldo" returns one message for a parent with two children: the pending balance with its payment link, and "al día" for the child who is up to date. Anything else gets the help message.</td>
+    <td valign="top">Free-form messages understood by a local model, four intents: greeting, balance question in the parent's own words, payment notice handed off to a person, and an off-topic request politely redirected. Model waiting time trimmed.</td>
+  </tr>
+</table>
 
 ## Architecture
 
@@ -165,6 +176,7 @@ evals/                            labeled cases and results
   - [x] Replies for hand-off to a person, greetings and off-topic messages
   - [x] Provider-agnostic `IChatClient` with fallback to rules when the model fails
   - [x] Evals: 40 labeled messages, 77.5% → 90% after an eval-driven fix
+  - [x] Demo GIF with the four intents
 - [ ] **Phase 3 – Conversational agent**
   - [ ] Short per-phone conversation memory
   - [ ] Held-out eval set with new phrasings
