@@ -11,10 +11,10 @@ WhatsApp bot (proof of concept) for a sports academy: parents ask about their ba
 ## Demo
 
 <p align="center">
-  <img src="docs/demo.gif" alt="WhatsApp chat: the parent writes 'Hola' and gets the help message, then writes 'saldo' and gets each child's balance, due date and payment link" width="360">
+  <img src="docs/demo.gif" alt="WhatsApp chat: the parent writes 'Buenas tardes' and gets an introduction, asks 'Cuanto debo?' and gets each child's balance with a payment link, says 'Ya hice la transferencia' and is told a person will review it, and asks for a movie recommendation and is politely redirected" width="360">
 </p>
 
-Real WhatsApp conversation with the bot (fake student data; recorded in phase 1, before greetings got their own reply). A parent with two children gets one message: the pending balance with its payment link, and "al día" for the child who is up to date.
+Real WhatsApp conversation with the bot (fake student data, waiting time trimmed). One parent, four intents: a greeting, a balance question (one message with the pending balance and payment link, and "al día" for the child who is up to date), a payment notice handed off to a person, and an off-topic request politely redirected.
 
 ## Architecture
 

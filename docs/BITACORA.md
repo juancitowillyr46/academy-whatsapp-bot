@@ -97,7 +97,6 @@ Desde el paso 7 de la fase 1, `secrets.json` cambió a formato plano (`"WhatsApp
 | Regenerar App Secret y token de Meta, y authtoken de ngrok (aparecieron en la conversación de desarrollo) | Pospuesto por decisión del dueño del proyecto |
 | Fase 3: memoria corta por número, conjunto de evaluación con frases nuevas, modelo alojado opcional | Próximo paso |
 | Fase 4: recordatorios con plantillas, Google Sheets, recepción de comprobantes | Futuro |
-| GIF de la demo | Muestra la fase 1 (antes de que los saludos tuvieran respuesta propia) |
 
 ## Cómo retomar
 
