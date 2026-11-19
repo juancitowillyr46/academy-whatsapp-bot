@@ -1,42 +1,35 @@
 using AcademyWhatsAppBot.Api.Common;
 using AcademyWhatsAppBot.Api.Data;
+using AcademyWhatsAppBot.Api.Intents;
 using AcademyWhatsAppBot.Api.Processing;
 
-namespace AcademyWhatsAppBot.Api.Balance;
+namespace AcademyWhatsAppBot.Api.Replies;
 
 /// <summary>
-/// Decides the reply for an incoming message: balance statement, not registered, or help.
+/// Builds the reply for an incoming message from its intent. All texts and amounts come from code and data,
+/// so a classifier (rules or a language model) can only choose which reply is sent, never its content.
 /// </summary>
-public sealed class BalanceService(IStudentRepository students)
+public sealed class ReplyService(IIntentClassifier classifier, IStudentRepository students)
 {
     public async Task<string> BuildReplyAsync(IncomingMessage message, CancellationToken cancellationToken = default)
     {
-        if (!IsBalanceRequest(message.Text))
-        {
-            return Messages.Help;
-        }
+        var intent = await classifier.ClassifyAsync(message.Text, cancellationToken);
 
-        var guardianStudents = await students.FindActiveByGuardianPhoneAsync(message.From, cancellationToken);
-        if (guardianStudents.Count == 0)
+        return intent switch
         {
-            return Messages.PhoneNotRegistered;
-        }
-
-        return BuildStatement(guardianStudents);
+            Intent.Balance => await BuildBalanceReplyAsync(message.From, cancellationToken),
+            _ => Messages.Help,
+        };
     }
 
-    /// <summary>
-    /// True if the text contains a balance keyword, ignoring case, accents and extra spaces.
-    /// </summary>
-    public static bool IsBalanceRequest(string? text)
+    // The phone always comes from WhatsApp's sender field, so a parent can only see their own students.
+    private async Task<string> BuildBalanceReplyAsync(string senderPhone, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return false;
-        }
+        var guardianStudents = await students.FindActiveByGuardianPhoneAsync(senderPhone, cancellationToken);
 
-        var normalized = TextNormalizer.Normalize(text);
-        return Messages.BalanceKeywords.Any(normalized.Contains);
+        return guardianStudents.Count == 0
+            ? Messages.PhoneNotRegistered
+            : BuildStatement(guardianStudents);
     }
 
     private static string BuildStatement(IReadOnlyList<Student> students)

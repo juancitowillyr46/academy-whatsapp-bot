@@ -87,7 +87,8 @@ dotnet test   # 42 tests, no secrets or network needed
 src/AcademyWhatsAppBot.Api/
 ├── Webhook/      GET verification, POST reception, signature validation
 ├── Processing/   in-memory queue and background worker
-├── Balance/      reply logic and Spanish user-facing texts
+├── Intents/      intent classifier (keyword rules)
+├── Replies/      intent → reply, Spanish user-facing texts
 ├── Data/         student model and JSON repository
 ├── WhatsApp/     Graph API client and options
 └── Common/       phone/text normalization, es-CO formats

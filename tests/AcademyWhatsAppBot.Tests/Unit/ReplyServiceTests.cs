@@ -1,10 +1,11 @@
-using AcademyWhatsAppBot.Api.Balance;
 using AcademyWhatsAppBot.Api.Data;
+using AcademyWhatsAppBot.Api.Intents;
 using AcademyWhatsAppBot.Api.Processing;
+using AcademyWhatsAppBot.Api.Replies;
 
 namespace AcademyWhatsAppBot.Tests.Unit;
 
-public class BalanceServiceTests
+public class ReplyServiceTests
 {
     private const string MartaPhone = "573001234567";
     private const string RuizPhone = "573009876543";
@@ -13,34 +14,13 @@ public class BalanceServiceTests
 
     private static readonly DateOnly DueDate = new(2026, 12, 5);
 
-    private readonly BalanceService _service = new(new FakeStudentRepository(
+    private readonly ReplyService _service = new(new KeywordIntentClassifier(), new FakeStudentRepository(
     [
         NewStudent("A001", "Juan Pérez", "Marta Gómez", MartaPhone, 120000),
         NewStudent("A002", "Sofía Ruiz", "Carlos Ruiz", RuizPhone, 150000),
         NewStudent("A003", "Mateo Ruiz", "Carlos Ruiz", RuizPhone, 0),
         NewStudent("A004", "Valentina Díaz", "Laura Díaz", DiazPhone, 0),
     ]));
-
-    [Theory]
-    [InlineData("saldo")]
-    [InlineData("SALDO")]
-    [InlineData("Hola, ¿cuál es mi saldo?")]
-    [InlineData("¿Cuánto debo?")]
-    [InlineData("tengo alguna deuda")]
-    public void IsBalanceRequest_DetectsKeywords(string text)
-    {
-        Assert.True(BalanceService.IsBalanceRequest(text));
-    }
-
-    [Theory]
-    [InlineData("hola")]
-    [InlineData("¿a qué hora es el entrenamiento?")]
-    [InlineData("")]
-    [InlineData(null)]
-    public void IsBalanceRequest_IgnoresOtherTexts(string? text)
-    {
-        Assert.False(BalanceService.IsBalanceRequest(text));
-    }
 
     [Fact]
     public async Task OneStudentWithBalance_ReturnsAmountDueDateAndPaymentLink()

@@ -1,6 +1,6 @@
 using System.Net;
 
-using AcademyWhatsAppBot.Api.Balance;
+using AcademyWhatsAppBot.Api.Replies;
 
 namespace AcademyWhatsAppBot.Tests.Integration;
 

@@ -14,7 +14,7 @@ flowchart LR
         direction LR
         Webhook["WebhookEndpoints<br/>validate + enqueue"] --> Queue["MessageQueue<br/>Channel&lt;IncomingMessage&gt;"]
         Queue --> Worker["MessageWorker<br/>BackgroundService"]
-        Worker --> Balance["BalanceService<br/>builds the reply"]
+        Worker --> Balance["ReplyService<br/>intent → reply"]
         Balance --> Repo["JsonStudentRepository"]
         Repo --> Json[("students.json")]
         Worker --> Client["WhatsAppClient<br/>typed HttpClient"]
@@ -32,7 +32,7 @@ sequenceDiagram
     participant W as WebhookEndpoints
     participant Q as MessageQueue
     participant B as MessageWorker
-    participant S as BalanceService
+    participant S as ReplyService
     participant C as WhatsAppClient
 
     M->>W: POST /webhook + X-Hub-Signature-256
@@ -57,7 +57,8 @@ sequenceDiagram
 |---|---|
 | `Webhook/` | `GET /webhook` verification, `POST /webhook` reception, signature validation, Meta payload DTOs |
 | `Processing/` | In-memory queue and background worker |
-| `Balance/` | Reply logic (`BalanceService`) and all Spanish user-facing texts (`Messages`) |
+| `Intents/` | `IIntentClassifier` and the keyword (rule-based) implementation |
+| `Replies/` | `ReplyService` (intent → reply) and all Spanish user-facing texts (`Messages`) |
 | `Data/` | `Student` record, `IStudentRepository` and the JSON implementation |
 | `WhatsApp/` | Options and the client that sends messages to the Graph API |
 | `Common/` | Phone and text normalization, es-CO currency and date formats |
@@ -94,15 +95,15 @@ No external broker is used: `Channel` is built into .NET, runs in-process and ne
 
 Meta may deliver the same message more than once. Each message has a unique id (`wamid...`), and the worker stores processed ids in `IMemoryCache` for 6 hours; repeated ids are logged and skipped. Because there is a single consumer, a simple check-then-set has no race condition.
 
-### Reply logic (`BalanceService`)
+### Reply logic (`IIntentClassifier` + `ReplyService`)
 
-Intent detection is intentionally rule-based (no AI in this phase):
+Replying is split in two steps: an `IIntentClassifier` decides **what** the parent wants (an `Intent`), and `ReplyService` builds **the text** from that intent with code and data. A classifier can therefore choose which reply is sent but never write its content, so amounts can't be invented and a parent can only see their own data (the phone always comes from WhatsApp's sender field). The current classifier, `KeywordIntentClassifier`, is rule-based:
 
 1. The text is normalized: lowercase, accents removed, extra spaces collapsed (`"¿Cuánto DEBO?"` → `"¿cuanto debo?"`).
 2. If it contains a balance keyword (`saldo`, `cuanto debo`, `deuda`), the guardian's **active** students are looked up by phone; otherwise, and for non-text messages (audio, images), the help text is returned.
 3. No students → "not registered" message. Otherwise a single message lists every student (siblings included): amount, period, due date and payment link, or "al día" when the balance is 0. The "send your receipt" footer appears only if something is owed.
 
-Amounts and dates use the `es-CO` culture: `$120.000` and `5 de diciembre`. All Spanish texts live in `Balance/Messages.cs`, so code, logs and identifiers stay in English.
+Amounts and dates use the `es-CO` culture: `$120.000` and `5 de diciembre`. All Spanish texts live in `Replies/Messages.cs`, so code, logs and identifiers stay in English.
 
 ### Student data
 
@@ -140,7 +141,7 @@ Run everything with `dotnet test`. No test calls Meta or needs real secrets, so 
 
 ### Unit tests (`tests/.../Unit`)
 
-Phone and text normalization, es-CO formats, keyword detection, `BalanceService` (one student, siblings, up to date, not registered, help, non-text) and `JsonStudentRepository` (snake_case mapping, inactive students). A fake repository replaces the JSON file where needed.
+Phone and text normalization, es-CO formats, keyword classification, `ReplyService` (one student, siblings, up to date, not registered, help, non-text) and `JsonStudentRepository` (snake_case mapping, inactive students). A fake repository replaces the JSON file where needed.
 
 ### Integration tests (`tests/.../Integration`)
 
@@ -150,7 +151,7 @@ Phone and text normalization, es-CO formats, keyword detection, `BalanceService`
 flowchart LR
     Test["xUnit test"] -- "POST /webhook<br/>signed with test secret" --> Api
     subgraph Api["Real API in memory (TestServer)"]
-        Webhook --> Queue --> Worker --> Balance["BalanceService"]
+        Webhook --> Queue --> Worker --> Balance["ReplyService"]
     end
     Worker --> Fake["FakeWhatsAppClient<br/>records replies"]
     Fake -- "signals" --> Test

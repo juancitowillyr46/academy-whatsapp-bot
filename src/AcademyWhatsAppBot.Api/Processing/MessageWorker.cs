@@ -1,5 +1,5 @@
-using AcademyWhatsAppBot.Api.Balance;
 using AcademyWhatsAppBot.Api.Common;
+using AcademyWhatsAppBot.Api.Replies;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -12,7 +12,7 @@ namespace AcademyWhatsAppBot.Api.Processing;
 public sealed class MessageWorker(
     MessageQueue queue,
     IMemoryCache processedIds,
-    BalanceService balanceService,
+    ReplyService replyService,
     IWhatsAppClient whatsAppClient,
     ILogger<MessageWorker> logger) : BackgroundService
 {
@@ -46,7 +46,7 @@ public sealed class MessageWorker(
 
     private async Task ProcessAsync(IncomingMessage message, CancellationToken cancellationToken)
     {
-        var reply = await balanceService.BuildReplyAsync(message, cancellationToken);
+        var reply = await replyService.BuildReplyAsync(message, cancellationToken);
         await whatsAppClient.SendTextMessageAsync(message.From, reply, cancellationToken);
     }
 }

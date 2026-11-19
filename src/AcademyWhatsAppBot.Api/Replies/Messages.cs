@@ -1,13 +1,10 @@
-namespace AcademyWhatsAppBot.Api.Balance;
+namespace AcademyWhatsAppBot.Api.Replies;
 
 /// <summary>
-/// All user-facing WhatsApp texts (Spanish) and the keywords parents type. Code stays in English.
+/// All user-facing WhatsApp texts (Spanish). Code, logs and identifiers stay in English.
 /// </summary>
 public static class Messages
 {
-    /// <summary>Normalized keywords (lowercase, no accents) that trigger a balance check.</summary>
-    public static readonly string[] BalanceKeywords = ["saldo", "cuanto debo", "deuda"];
-
     public static string StatementHeader(string guardianName) =>
         $"Hola {guardianName} 👋\nEste es el estado de cuenta:";
 

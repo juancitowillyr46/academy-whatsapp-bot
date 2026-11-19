@@ -1,6 +1,7 @@
-using AcademyWhatsAppBot.Api.Balance;
 using AcademyWhatsAppBot.Api.Data;
+using AcademyWhatsAppBot.Api.Intents;
 using AcademyWhatsAppBot.Api.Processing;
+using AcademyWhatsAppBot.Api.Replies;
 using AcademyWhatsAppBot.Api.Webhook;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
@@ -29,7 +30,8 @@ builder.Services
 builder.Services.AddSingleton<IStudentRepository>(services =>
     new JsonStudentRepository(ResolveDataPath(services.GetRequiredService<IOptions<DataOptions>>().Value)));
 
-builder.Services.AddSingleton<BalanceService>();
+builder.Services.AddSingleton<IIntentClassifier, KeywordIntentClassifier>();
+builder.Services.AddSingleton<ReplyService>();
 
 // The client is used by a long-lived worker, so recycle pooled connections to pick up DNS changes.
 builder.Services
