@@ -136,7 +136,37 @@ Amounts and dates use the `es-CO` culture: `$120.000` and `5 de diciembre`. All 
 
 ## Tests
 
-xUnit unit tests cover phone and text normalization, es-CO formats, keyword detection, `BalanceService` (one student, siblings, up to date, not registered, help, non-text) and `JsonStudentRepository` (snake_case mapping, inactive students). Test doubles replace the repository; no test calls Meta.
+Run everything with `dotnet test`. No test calls Meta or needs real secrets, so the suite runs the same locally and in CI.
+
+### Unit tests (`tests/.../Unit`)
+
+Phone and text normalization, es-CO formats, keyword detection, `BalanceService` (one student, siblings, up to date, not registered, help, non-text) and `JsonStudentRepository` (snake_case mapping, inactive students). A fake repository replaces the JSON file where needed.
+
+### Integration tests (`tests/.../Integration`)
+
+`WebApplicationFactory<Program>` starts the **real** API in memory (routing, signature validation, JSON, queue, worker, reply logic) and the tests talk to it over HTTP, just like Meta does.
+
+```mermaid
+flowchart LR
+    Test["xUnit test"] -- "POST /webhook<br/>signed with test secret" --> Api
+    subgraph Api["Real API in memory (TestServer)"]
+        Webhook --> Queue --> Worker --> Balance["BalanceService"]
+    end
+    Worker --> Fake["FakeWhatsAppClient<br/>records replies"]
+    Fake -- "signals" --> Test
+```
+
+`BotApplicationFactory` changes only what must not be real in a test:
+
+| Real dependency | Replaced by | Why |
+|---|---|---|
+| `WhatsAppClient` (calls Meta) | `FakeWhatsAppClient`, which records what would have been sent | No cost, no token, works offline and in CI |
+| User Secrets | Fixed test settings (environment `Testing`, so User Secrets are never loaded) | A known `AppSecret` lets the test sign its own requests |
+| Local data file | `data/students.json` (fake data) | Predictable results |
+
+Covered scenarios: verification with correct/wrong token, invalid and missing signature (`401`, nothing sent), balance statement, siblings, unknown phone, help, status events ignored and duplicate messages answered once. Payloads come from `Fixtures/` and mirror Meta's real format.
+
+**Testing background work.** The webhook returns `200` before the worker replies, so tests cannot assert right after the request. `FakeWhatsAppClient` releases a semaphore on every send and `WaitForMessagesAsync(n)` waits for it with a timeout. For "nothing should be sent" cases (status events, duplicates), the test sends a follow-up message and relies on the queue's ordering: if the ignored event had produced a reply, it would arrive first. This avoids fixed `Task.Delay` waits and flaky tests.
 
 ## Known limitations and production path
 
