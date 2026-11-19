@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AcademyWhatsAppBot.Api/AcademyWhatsAppBot.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AcademyWhatsAppBot.Tests/AcademyWhatsAppBot.Tests.csproj" />
+  </Folder>
+</Solution>

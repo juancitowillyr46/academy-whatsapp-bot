@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>academy-whatsapp-bot-api</UserSecretsId>
+  </PropertyGroup>
+
+</Project>
