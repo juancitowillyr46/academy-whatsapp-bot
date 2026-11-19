@@ -9,17 +9,31 @@ namespace AcademyWhatsAppBot.Api.Replies;
 /// Builds the reply for an incoming message from its intent. All texts and amounts come from code and data,
 /// so a classifier (rules or a language model) can only choose which reply is sent, never its content.
 /// </summary>
-public sealed class ReplyService(IIntentClassifier classifier, IStudentRepository students)
+public sealed class ReplyService(IIntentClassifier classifier, IStudentRepository students, ILogger<ReplyService> logger)
 {
     public async Task<string> BuildReplyAsync(IncomingMessage message, CancellationToken cancellationToken = default)
     {
         var intent = await classifier.ClassifyAsync(message.Text, cancellationToken);
 
-        return intent switch
+        switch (intent)
         {
-            Intent.Balance => await BuildBalanceReplyAsync(message.From, cancellationToken),
-            _ => Messages.Help,
-        };
+            case Intent.Balance:
+                return await BuildBalanceReplyAsync(message.From, cancellationToken);
+
+            case Intent.Handoff:
+                // POC: the log is the hand-off queue; a real deployment would notify staff (email, CRM, inbox).
+                logger.LogWarning("Hand-off requested by {From} (message {MessageId})", PhoneNormalizer.Mask(message.From), message.Id);
+                return Messages.Handoff;
+
+            case Intent.Greeting:
+                return Messages.Greeting;
+
+            case Intent.OffTopic:
+                return Messages.OffTopic;
+
+            default:
+                return Messages.Help;
+        }
     }
 
     // The phone always comes from WhatsApp's sender field, so a parent can only see their own students.

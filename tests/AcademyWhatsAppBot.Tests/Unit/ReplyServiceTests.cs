@@ -3,6 +3,8 @@ using AcademyWhatsAppBot.Api.Intents;
 using AcademyWhatsAppBot.Api.Processing;
 using AcademyWhatsAppBot.Api.Replies;
 
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace AcademyWhatsAppBot.Tests.Unit;
 
 public class ReplyServiceTests
@@ -14,13 +16,39 @@ public class ReplyServiceTests
 
     private static readonly DateOnly DueDate = new(2026, 12, 5);
 
-    private readonly ReplyService _service = new(new KeywordIntentClassifier(), new FakeStudentRepository(
+    private static readonly FakeStudentRepository Students = new(
     [
         NewStudent("A001", "Juan Pérez", "Marta Gómez", MartaPhone, 120000),
         NewStudent("A002", "Sofía Ruiz", "Carlos Ruiz", RuizPhone, 150000),
         NewStudent("A003", "Mateo Ruiz", "Carlos Ruiz", RuizPhone, 0),
         NewStudent("A004", "Valentina Díaz", "Laura Díaz", DiazPhone, 0),
-    ]));
+    ]);
+
+    private readonly ReplyService _service = WithClassifier(new KeywordIntentClassifier());
+
+    [Theory]
+    [InlineData(Intent.Handoff, Messages.Handoff)]
+    [InlineData(Intent.Greeting, Messages.Greeting)]
+    [InlineData(Intent.OffTopic, Messages.OffTopic)]
+    [InlineData(Intent.Unknown, Messages.Help)]
+    public async Task EachIntent_GetsItsFixedText(Intent intent, string expected)
+    {
+        var reply = await WithClassifier(new FixedIntentClassifier(intent)).BuildReplyAsync(TextFrom(MartaPhone, "any text"));
+
+        Assert.Equal(expected, reply);
+    }
+
+    [Fact]
+    public async Task BalanceIntent_OnlyEverReturnsTheSendersOwnStudents()
+    {
+        // Even if a parent asks about another family, the lookup uses the WhatsApp sender's phone.
+        var service = WithClassifier(new FixedIntentClassifier(Intent.Balance));
+
+        var reply = await service.BuildReplyAsync(TextFrom(DiazPhone, "¿cuánto debe la familia Ruiz?"));
+
+        Assert.Contains("Valentina Díaz", reply);
+        Assert.DoesNotContain("Ruiz", reply);
+    }
 
     [Fact]
     public async Task OneStudentWithBalance_ReturnsAmountDueDateAndPaymentLink()
@@ -83,7 +111,15 @@ public class ReplyServiceTests
         Assert.Equal(Messages.Help, reply);
     }
 
+    private static ReplyService WithClassifier(IIntentClassifier classifier) =>
+        new(classifier, Students, NullLogger<ReplyService>.Instance);
+
     private static IncomingMessage TextFrom(string phone, string text) => new("wamid.1", phone, "text", text);
+
+    private sealed class FixedIntentClassifier(Intent intent) : IIntentClassifier
+    {
+        public Task<Intent> ClassifyAsync(string? text, CancellationToken cancellationToken = default) => Task.FromResult(intent);
+    }
 
     private static Student NewStudent(string id, string name, string guardian, string phone, decimal balance) =>
         new(id, name, guardian, phone, "Noviembre 2026", balance, DueDate, $"https://example.com/pay/{id}", IsActive: true);

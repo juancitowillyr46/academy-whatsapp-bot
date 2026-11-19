@@ -21,4 +21,13 @@ public static class Messages
 
     public const string Help =
         "Hola 👋 Escribe *saldo* para consultar tu estado de cuenta.\nSi necesitas otra cosa, en breve te atiende una persona.";
+
+    public const string Handoff =
+        "Gracias por escribirnos 🙌 Una persona de la administración revisará tu mensaje y te responderá en breve.";
+
+    public const string Greeting =
+        "¡Hola! 👋 Soy el asistente de la academia. Puedes preguntarme por tu estado de cuenta, por ejemplo: *¿cuánto debo?* o *¿hasta cuándo puedo pagar?*";
+
+    public const string OffTopic =
+        "Por ahora solo puedo ayudarte con tu estado de cuenta de la academia 🙂 Escribe *saldo* para consultarlo.";
 }

@@ -131,7 +131,15 @@ flowchart LR
 
 Small models hallucinate when they write free text about money, and are reliable enough when they only choose among fixed options. An `other_family` intent was also dropped after testing: the model can't know whether "Tomás" is the sender's child, and it doesn't need to, because a balance reply only ever contains the sender's own students.
 
-Once the intent is known: for `Balance`, the guardian's **active** students are looked up by phone. No students → "not registered" message. Otherwise a single message lists every student (siblings included): amount, period, due date and payment link, or "al día" when the balance is 0. The "send your receipt" footer appears only if something is owed. Other intents and non-text messages (audio, images) currently get the help text.
+Once the intent is known: for `Balance`, the guardian's **active** students are looked up by phone. No students → "not registered" message. Otherwise a single message lists every student (siblings included): amount, period, due date and payment link, or "al día" when the balance is 0. The "send your receipt" footer appears only if something is owed.
+
+| Intent | Reply (fixed text in `Replies/Messages.cs`) |
+|---|---|
+| `Balance` | Statement built from the sender's own data (above) |
+| `Handoff` | "A person from the office will review your message"; logged as a warning with the masked phone (in this POC the log is the hand-off queue; a real deployment would notify staff) |
+| `Greeting` | Short introduction with example questions |
+| `OffTopic` | Polite redirect to balance questions |
+| `Unknown` (and audio, images) | Help text |
 
 Amounts and dates use the `es-CO` culture: `$120.000` and `5 de diciembre`. All Spanish texts live in `Replies/Messages.cs`, so code, logs and identifiers stay in English.
 
