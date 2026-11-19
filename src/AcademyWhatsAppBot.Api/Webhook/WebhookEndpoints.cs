@@ -1,6 +1,7 @@
 using System.Text.Json;
 
 using AcademyWhatsAppBot.Api.Common;
+using AcademyWhatsAppBot.Api.Processing;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +48,7 @@ public static class WebhookEndpoints
     private static async Task<IResult> ReceiveWebhookAsync(
         HttpRequest request,
         IOptions<WhatsAppOptions> options,
-        IWhatsAppClient whatsAppClient,
+        MessageQueue queue,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
@@ -91,10 +92,10 @@ public static class WebhookEndpoints
                 PhoneNormalizer.Mask(message.From),
                 message.Text?.Body);
 
-            // Temporary end-to-end check (step 5). Replaced by the background queue and balance reply later.
-            await whatsAppClient.SendTextMessageAsync(message.From, "hola", cancellationToken);
+            queue.Enqueue(new IncomingMessage(message.Id, message.From, message.Type, message.Text?.Body));
         }
 
+        // Answer right away; Meta retries (and duplicates messages) when the webhook is slow.
         return Results.Ok();
     }
 }

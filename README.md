@@ -10,6 +10,11 @@ WhatsApp bot (proof of concept) for a sports academy: parents text **"saldo"** a
 - WhatsApp Cloud API (Meta) webhooks
 - xUnit, GitHub Actions
 
+## Documentation
+
+- [Architecture](docs/architecture.md): request flow, background queue, signature validation, deduplication and design decisions.
+- [Demo checklist](docs/demo-checklist.md): one-time Meta/ngrok setup, steps to turn the demo on and troubleshooting.
+
 ## Roadmap
 
 - **Phase 1 – Rule-based bot (current):** balance check by keywords, runs locally on demand.

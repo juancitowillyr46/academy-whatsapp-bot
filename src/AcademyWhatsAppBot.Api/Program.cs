@@ -1,3 +1,4 @@
+using AcademyWhatsAppBot.Api.Processing;
 using AcademyWhatsAppBot.Api.Webhook;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
@@ -14,6 +15,10 @@ builder.Services
 
 builder.Services.AddHttpClient<IWhatsAppClient, WhatsAppClient>(client =>
     client.BaseAddress = new Uri("https://graph.facebook.com/"));
+
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<MessageQueue>();
+builder.Services.AddHostedService<MessageWorker>();
 
 var app = builder.Build();
 
