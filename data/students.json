@@ -27,7 +27,7 @@
     "guardian_name": "Carlos Ruiz",
     "guardian_phone": "573009876543",
     "period": "Noviembre 2026",
-    "balance": 150000,
+    "balance": 0,
     "due_date": "2026-12-05",
     "payment_link": "https://example.com/pay/A003",
     "is_active": true

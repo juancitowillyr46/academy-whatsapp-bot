@@ -81,8 +81,8 @@ public sealed class WebhookTests : IDisposable
             BotApplicationFactory.TextMessage("wamid.2", RuizPhone, "saldo")));
 
         var sent = Assert.Single(await _factory.WhatsApp.WaitForMessagesAsync(1));
-        Assert.Contains("Sofía Ruiz", sent.Text);
-        Assert.Contains("Mateo Ruiz", sent.Text);
+        Assert.Contains("• Sofía Ruiz – Noviembre 2026: $150.000", sent.Text);
+        Assert.Contains("• Mateo Ruiz – al día ✅", sent.Text);
     }
 
     [Fact]
