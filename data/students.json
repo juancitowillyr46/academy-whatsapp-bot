@@ -1,0 +1,57 @@
+[
+  {
+    "student_id": "A001",
+    "student_name": "Juan Pérez",
+    "guardian_name": "Marta Gómez",
+    "guardian_phone": "573001234567",
+    "period": "Noviembre 2026",
+    "balance": 120000,
+    "due_date": "2026-12-05",
+    "payment_link": "https://example.com/pay/A001",
+    "is_active": true
+  },
+  {
+    "student_id": "A002",
+    "student_name": "Sofía Ruiz",
+    "guardian_name": "Carlos Ruiz",
+    "guardian_phone": "573009876543",
+    "period": "Noviembre 2026",
+    "balance": 150000,
+    "due_date": "2026-12-05",
+    "payment_link": "https://example.com/pay/A002",
+    "is_active": true
+  },
+  {
+    "student_id": "A003",
+    "student_name": "Mateo Ruiz",
+    "guardian_name": "Carlos Ruiz",
+    "guardian_phone": "573009876543",
+    "period": "Noviembre 2026",
+    "balance": 150000,
+    "due_date": "2026-12-05",
+    "payment_link": "https://example.com/pay/A003",
+    "is_active": true
+  },
+  {
+    "student_id": "A004",
+    "student_name": "Valentina Díaz",
+    "guardian_name": "Laura Díaz",
+    "guardian_phone": "573005551234",
+    "period": "Noviembre 2026",
+    "balance": 0,
+    "due_date": "2026-12-05",
+    "payment_link": "https://example.com/pay/A004",
+    "is_active": true
+  },
+  {
+    "student_id": "A005",
+    "student_name": "Samuel Castro",
+    "guardian_name": "Pedro Castro",
+    "guardian_phone": "573007778899",
+    "period": "Noviembre 2026",
+    "balance": 90000,
+    "due_date": "2026-12-05",
+    "payment_link": "https://example.com/pay/A005",
+    "is_active": false
+  }
+]

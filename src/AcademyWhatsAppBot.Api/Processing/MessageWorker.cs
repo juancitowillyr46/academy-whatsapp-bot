@@ -1,3 +1,4 @@
+using AcademyWhatsAppBot.Api.Balance;
 using AcademyWhatsAppBot.Api.Common;
 using AcademyWhatsAppBot.Api.WhatsApp;
 
@@ -11,6 +12,7 @@ namespace AcademyWhatsAppBot.Api.Processing;
 public sealed class MessageWorker(
     MessageQueue queue,
     IMemoryCache processedIds,
+    BalanceService balanceService,
     IWhatsAppClient whatsAppClient,
     ILogger<MessageWorker> logger) : BackgroundService
 {
@@ -42,9 +44,9 @@ public sealed class MessageWorker(
         }
     }
 
-    private Task ProcessAsync(IncomingMessage message, CancellationToken cancellationToken)
+    private async Task ProcessAsync(IncomingMessage message, CancellationToken cancellationToken)
     {
-        // Temporary reply; replaced by the balance flow in the next step.
-        return whatsAppClient.SendTextMessageAsync(message.From, "hola", cancellationToken);
+        var reply = await balanceService.BuildReplyAsync(message, cancellationToken);
+        await whatsAppClient.SendTextMessageAsync(message.From, reply, cancellationToken);
     }
 }
